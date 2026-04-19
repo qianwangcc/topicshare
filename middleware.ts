@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { verifySession } from '@/lib/auth';
 
-const PUBLIC_PATHS = ['/login', '/verify', '/api/auth/send', '/api/auth/verify'];
+const PUBLIC_PATHS = ['/login', '/verify', '/api/auth/send', '/api/auth/verify', '/api/auth/restore-guest'];
 
 export async function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl;
@@ -12,7 +12,9 @@ export async function middleware(req: NextRequest) {
     pathname.startsWith('/_next') ||
     pathname.startsWith('/icons') ||
     pathname === '/manifest.json' ||
-    pathname === '/favicon.ico';
+    pathname === '/favicon.ico' ||
+    pathname === '/sw.js' ||
+    pathname.startsWith('/workbox-');
 
   if (isPublic) return NextResponse.next();
 
