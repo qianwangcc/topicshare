@@ -1,0 +1,61 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id          String        @id @default(cuid())
+  email       String        @unique
+  name        String?
+  avatar      String?
+  createdAt   DateTime      @default(now())
+  ownedTopics Topic[]
+  members     TopicMember[]
+  posts       Post[]
+}
+
+model Topic {
+  id          String        @id @default(cuid())
+  title       String
+  description String?
+  inviteCode  String        @unique @default(cuid())
+  createdAt   DateTime      @default(now())
+  creator     User          @relation(fields: [creatorId], references: [id])
+  creatorId   String
+  members     TopicMember[]
+  posts       Post[]
+}
+
+model TopicMember {
+  topic    Topic    @relation(fields: [topicId], references: [id], onDelete: Cascade)
+  topicId  String
+  user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId   String
+  joinedAt DateTime @default(now())
+
+  @@id([topicId, userId])
+}
+
+model Post {
+  id        String   @id @default(cuid())
+  text      String?
+  imageUrl  String?
+  createdAt DateTime @default(now())
+  topic     Topic    @relation(fields: [topicId], references: [id], onDelete: Cascade)
+  topicId   String
+  author    User     @relation(fields: [authorId], references: [id])
+  authorId  String
+}
+
+model MagicLink {
+  id        String   @id @default(cuid())
+  email     String
+  token     String   @unique
+  expiresAt DateTime
+  used      Boolean  @default(false)
+  createdAt DateTime @default(now())
+}
