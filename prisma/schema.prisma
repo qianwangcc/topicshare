@@ -12,6 +12,7 @@ model User {
   email       String        @unique
   name        String?
   avatar      String?
+  password    String?
   createdAt   DateTime      @default(now())
   ownedTopics Topic[]
   members     TopicMember[]
@@ -79,11 +80,3 @@ model Comment {
   createdAt DateTime @default(now())
 }
 
-model MagicLink {
-  id        String   @id @default(cuid())
-  email     String
-  token     String   @unique
-  expiresAt DateTime
-  used      Boolean  @default(false)
-  createdAt DateTime @default(now())
-}

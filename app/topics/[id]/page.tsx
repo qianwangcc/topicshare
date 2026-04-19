@@ -6,6 +6,7 @@ import PostCard from '@/components/PostCard';
 import PostForm from '@/components/PostForm';
 import InviteButton from '@/components/InviteButton';
 import DeleteTopicButton from '@/components/DeleteTopicButton';
+import SaveAccountBanner from '@/components/SaveAccountBanner';
 
 export default async function TopicPage({ params }: { params: { id: string } }) {
   const session = await getSession();
@@ -39,6 +40,9 @@ export default async function TopicPage({ params }: { params: { id: string } }) 
   const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? '';
   const inviteUrl = `${appUrl}/join/${topic.inviteCode}`;
 
+  // Detect guest: guest emails follow the pattern guest-uuid@topicshare.local
+  const isGuest = session.email.endsWith('@topicshare.local');
+
   return (
     <div className="min-h-screen max-w-lg mx-auto px-4 py-6">
       <div className="flex items-center gap-3 mb-1">
@@ -62,6 +66,7 @@ export default async function TopicPage({ params }: { params: { id: string } }) 
         {isCreator && <DeleteTopicButton topicId={topic.id} />}
       </div>
 
+      {isGuest && <SaveAccountBanner />}
       <PostForm topicId={topic.id} />
 
       <div className="mt-6 space-y-4">
