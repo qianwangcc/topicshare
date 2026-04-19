@@ -2,6 +2,7 @@ import { redirect } from 'next/navigation';
 import { getSession } from '@/lib/auth';
 import { prisma } from '@/lib/db';
 import JoinForm from '@/components/JoinForm';
+import WeChatBanner from '@/components/WeChatBanner';
 
 export default async function JoinPage({ params }: { params: { inviteCode: string } }) {
   const topic = await prisma.topic.findUnique({
@@ -40,6 +41,7 @@ export default async function JoinPage({ params }: { params: { inviteCode: strin
   return (
     <div className="min-h-screen flex items-center justify-center px-4">
       <div className="w-full max-w-sm bg-white rounded-xl shadow-sm border border-gray-100 p-6 text-center">
+        <WeChatBanner />
         <div className="text-4xl mb-4">🎉</div>
         <h1 className="text-xl font-bold text-gray-900 mb-1">{topic.title}</h1>
         <p className="text-sm text-gray-500 mb-1">
