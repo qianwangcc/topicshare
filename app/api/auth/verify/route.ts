@@ -26,7 +26,22 @@ export async function GET(req: NextRequest) {
   const sessionToken = await createSession({ userId: user.id, email: user.email });
   const opts = sessionCookieOptions(sessionToken);
 
-  const response = NextResponse.redirect(new URL(redirectTo, req.url));
+  // Use HTML redirect instead of NextResponse.redirect to ensure
+  // the Set-Cookie header is reliably processed before navigation
+  const html = `<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>Logging in...</title>
+    <script>window.location.href = ${JSON.stringify(redirectTo)};</script>
+  </head>
+  <body>Logging in, please wait...</body>
+</html>`;
+
+  const response = new NextResponse(html, {
+    status: 200,
+    headers: { 'Content-Type': 'text/html' },
+  });
   response.cookies.set(opts);
   return response;
 }
