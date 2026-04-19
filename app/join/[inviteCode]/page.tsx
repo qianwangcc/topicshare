@@ -1,11 +1,9 @@
 import { redirect } from 'next/navigation';
 import { getSession } from '@/lib/auth';
 import { prisma } from '@/lib/db';
-import JoinButton from '@/components/JoinButton';
+import JoinForm from '@/components/JoinForm';
 
 export default async function JoinPage({ params }: { params: { inviteCode: string } }) {
-  const session = await getSession();
-
   const topic = await prisma.topic.findUnique({
     where: { inviteCode: params.inviteCode },
     include: {
@@ -26,15 +24,16 @@ export default async function JoinPage({ params }: { params: { inviteCode: strin
     );
   }
 
-  if (!session) {
-    redirect(`/login?redirectTo=/join/${params.inviteCode}`);
+  // If already logged in, auto-join and redirect
+  const session = await getSession();
+  if (session) {
+    await prisma.topicMember.upsert({
+      where: { topicId_userId: { topicId: topic.id, userId: session.userId } },
+      create: { topicId: topic.id, userId: session.userId },
+      update: {},
+    });
+    redirect(`/topics/${topic.id}`);
   }
-
-  const alreadyMember = await prisma.topicMember.findUnique({
-    where: { topicId_userId: { topicId: topic.id, userId: session.userId } },
-  });
-
-  if (alreadyMember) redirect(`/topics/${topic.id}`);
 
   const creatorName = topic.creator.name ?? topic.creator.email.split('@')[0];
 
@@ -50,7 +49,8 @@ export default async function JoinPage({ params }: { params: { inviteCode: strin
           {topic._count.members} member{topic._count.members !== 1 ? 's' : ''}
           {topic.description ? ` · ${topic.description}` : ''}
         </p>
-        <JoinButton inviteCode={params.inviteCode} topicId={topic.id} />
+        <p className="text-sm text-gray-600 mb-4 font-medium">Enter your name to join</p>
+        <JoinForm inviteCode={params.inviteCode} topicId={topic.id} />
       </div>
     </div>
   );
