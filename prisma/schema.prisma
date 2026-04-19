@@ -16,12 +16,15 @@ model User {
   ownedTopics Topic[]
   members     TopicMember[]
   posts       Post[]
+  reactions   Reaction[]
+  comments    Comment[]
 }
 
 model Topic {
   id          String        @id @default(cuid())
   title       String
   description String?
+  coverImage  String?
   inviteCode  String        @unique @default(cuid())
   createdAt   DateTime      @default(now())
   creator     User          @relation(fields: [creatorId], references: [id])
@@ -41,14 +44,39 @@ model TopicMember {
 }
 
 model Post {
-  id        String   @id @default(cuid())
+  id        String     @id @default(cuid())
   text      String?
   imageUrl  String?
-  createdAt DateTime @default(now())
-  topic     Topic    @relation(fields: [topicId], references: [id], onDelete: Cascade)
+  pinned    Boolean    @default(false)
+  createdAt DateTime   @default(now())
+  topic     Topic      @relation(fields: [topicId], references: [id], onDelete: Cascade)
   topicId   String
+  author    User       @relation(fields: [authorId], references: [id])
+  authorId  String
+  reactions Reaction[]
+  comments  Comment[]
+}
+
+model Reaction {
+  id        String   @id @default(cuid())
+  emoji     String
+  post      Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
+  postId    String
+  user      User     @relation(fields: [userId], references: [id])
+  userId    String
+  createdAt DateTime @default(now())
+
+  @@unique([postId, userId, emoji])
+}
+
+model Comment {
+  id        String   @id @default(cuid())
+  text      String
+  post      Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
+  postId    String
   author    User     @relation(fields: [authorId], references: [id])
   authorId  String
+  createdAt DateTime @default(now())
 }
 
 model MagicLink {

@@ -30,6 +30,27 @@ export async function POST(req: NextRequest) {
   return NextResponse.json(post, { status: 201 });
 }
 
+export async function PATCH(req: NextRequest) {
+  const session = await getSession();
+  if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+
+  const { postId } = await req.json();
+  const post = await prisma.post.findUnique({
+    where: { id: postId },
+    include: { topic: { select: { creatorId: true } } },
+  });
+  if (!post) return NextResponse.json({ error: 'Not found' }, { status: 404 });
+  if (post.topic.creatorId !== session.userId) {
+    return NextResponse.json({ error: 'Only topic creator can pin posts' }, { status: 403 });
+  }
+
+  const updated = await prisma.post.update({
+    where: { id: postId },
+    data: { pinned: !post.pinned },
+  });
+  return NextResponse.json({ pinned: updated.pinned });
+}
+
 export async function DELETE(req: NextRequest) {
   const session = await getSession();
   if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });

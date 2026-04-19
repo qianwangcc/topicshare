@@ -24,13 +24,14 @@ export async function POST(req: NextRequest) {
   const session = await getSession();
   if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
-  const { title, description } = await req.json();
+  const { title, description, coverImage } = await req.json();
   if (!title?.trim()) return NextResponse.json({ error: 'Title is required' }, { status: 400 });
 
   const topic = await prisma.topic.create({
     data: {
       title: title.trim(),
       description: description?.trim() || null,
+      coverImage: coverImage || null,
       creatorId: session.userId,
       members: { create: { userId: session.userId } },
     },

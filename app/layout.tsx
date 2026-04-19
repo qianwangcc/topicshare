@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from 'next';
 import './globals.css';
+import GuestRestorer from '@/components/GuestRestorer';
 
 export const metadata: Metadata = {
   title: 'TopicShare',
@@ -25,7 +26,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <head>
         <link rel="apple-touch-icon" href="/icons/icon-192.png" />
       </head>
-      <body className="min-h-screen">{children}</body>
+      <body className="min-h-screen">
+        <GuestRestorer />
+        {children}
+      </body>
     </html>
   );
 }

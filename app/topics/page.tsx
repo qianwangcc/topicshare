@@ -13,20 +13,39 @@ export default async function TopicsPage() {
     include: {
       creator: { select: { id: true, name: true, email: true } },
       _count: { select: { members: true, posts: true } },
+      posts: {
+        orderBy: { createdAt: 'desc' },
+        take: 1,
+        select: { createdAt: true },
+      },
     },
     orderBy: { createdAt: 'desc' },
   });
+
+  const topicsWithActivity = topics.map((t) => ({
+    ...t,
+    lastPostAt: t.posts[0]?.createdAt ?? null,
+  }));
 
   return (
     <div className="min-h-screen max-w-lg mx-auto px-4 py-6">
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-2xl font-bold text-gray-900">My Topics</h1>
-        <Link
-          href="/topics/new"
-          className="bg-brand-600 hover:bg-brand-700 text-white text-sm font-semibold px-4 py-2 rounded-lg transition-colors"
-        >
-          + New Topic
-        </Link>
+        <div className="flex items-center gap-2">
+          <Link
+            href="/profile"
+            className="text-gray-400 hover:text-brand-600 transition-colors text-xl"
+            title="Profile"
+          >
+            👤
+          </Link>
+          <Link
+            href="/topics/new"
+            className="bg-brand-600 hover:bg-brand-700 text-white text-sm font-semibold px-4 py-2 rounded-lg transition-colors"
+          >
+            + New
+          </Link>
+        </div>
       </div>
 
       {topics.length === 0 ? (
@@ -43,7 +62,7 @@ export default async function TopicsPage() {
         </div>
       ) : (
         <div className="space-y-3">
-          {topics.map((topic) => (
+          {topicsWithActivity.map((topic) => (
             <TopicCard key={topic.id} topic={topic} currentUserId={session.userId} />
           ))}
         </div>

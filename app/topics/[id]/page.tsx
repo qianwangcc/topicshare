@@ -5,6 +5,7 @@ import { prisma } from '@/lib/db';
 import PostCard from '@/components/PostCard';
 import PostForm from '@/components/PostForm';
 import InviteButton from '@/components/InviteButton';
+import DeleteTopicButton from '@/components/DeleteTopicButton';
 
 export default async function TopicPage({ params }: { params: { id: string } }) {
   const session = await getSession();
@@ -16,8 +17,15 @@ export default async function TopicPage({ params }: { params: { id: string } }) 
       creator: { select: { id: true, name: true, email: true } },
       members: { include: { user: { select: { id: true, name: true, email: true } } } },
       posts: {
-        include: { author: { select: { id: true, name: true, email: true } } },
-        orderBy: { createdAt: 'desc' },
+        include: {
+          author: { select: { id: true, name: true, email: true } },
+          reactions: true,
+          comments: {
+            include: { author: { select: { id: true, name: true, email: true } } },
+            orderBy: { createdAt: 'asc' },
+          },
+        },
+        orderBy: [{ pinned: 'desc' }, { createdAt: 'desc' }],
       },
     },
   });
@@ -27,6 +35,7 @@ export default async function TopicPage({ params }: { params: { id: string } }) 
   const isMember = topic.members.some((m) => m.userId === session.userId);
   if (!isMember) redirect(`/join/${topic.inviteCode}`);
 
+  const isCreator = topic.creatorId === session.userId;
   const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? '';
   const inviteUrl = `${appUrl}/join/${topic.inviteCode}`;
 
@@ -47,9 +56,10 @@ export default async function TopicPage({ params }: { params: { id: string } }) 
         <p className="text-sm text-gray-500 mb-3 ml-8">{topic.description}</p>
       )}
 
-      <div className="flex items-center gap-3 mb-5 ml-8">
+      <div className="flex items-center gap-3 mb-5 ml-8 flex-wrap">
         <span className="text-xs text-gray-400">{topic.members.length} member{topic.members.length !== 1 ? 's' : ''}</span>
         <InviteButton inviteUrl={inviteUrl} />
+        {isCreator && <DeleteTopicButton topicId={topic.id} />}
       </div>
 
       <PostForm topicId={topic.id} />
@@ -66,6 +76,7 @@ export default async function TopicPage({ params }: { params: { id: string } }) 
               key={post.id}
               post={post}
               currentUserId={session.userId}
+              isTopicCreator={isCreator}
             />
           ))
         )}

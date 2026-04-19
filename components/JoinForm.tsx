@@ -24,6 +24,11 @@ export default function JoinForm({ inviteCode, topicId }: { inviteCode: string; 
         setError(data.error ?? 'Failed to join');
         return;
       }
+      const data = await res.json();
+      // Persist guest identity so returning visits restore the same account
+      if (data.guestId) {
+        localStorage.setItem('topicshare_guest_id', data.guestId);
+      }
       router.push(`/topics/${topicId}`);
     } catch {
       setError('Network error. Please try again.');
