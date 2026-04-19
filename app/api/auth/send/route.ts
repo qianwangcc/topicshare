@@ -17,7 +17,7 @@ export async function POST(req: NextRequest) {
     await prisma.magicLink.create({ data: { email, token, expiresAt } });
 
     const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? 'http://localhost:3000';
-    const verifyUrl = new URL('/verify', appUrl);
+    const verifyUrl = new URL('/api/auth/verify', appUrl);
     verifyUrl.searchParams.set('token', token);
     if (redirectTo) verifyUrl.searchParams.set('redirectTo', redirectTo);
 
