@@ -3,7 +3,7 @@ import { Resend } from 'resend';
 export async function sendMagicLink(email: string, url: string) {
   const resend = new Resend(process.env.RESEND_API_KEY);
   await resend.emails.send({
-    from: 'TopicShare <noreply@topicshare.app>',
+    from: 'TopicShare <onboarding@resend.dev>',
     to: email,
     subject: 'Your login link for TopicShare',
     html: `
