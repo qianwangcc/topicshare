@@ -11,7 +11,8 @@ export interface SessionPayload {
 }
 
 export async function createSession(payload: SessionPayload): Promise<string> {
-  return new SignJWT({ userId: payload.userId, email: payload.email } as Parameters<typeof SignJWT>[0])
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  return new SignJWT({ userId: payload.userId, email: payload.email } as any)
     .setProtectedHeader({ alg: 'HS256' })
     .setIssuedAt()
     .setExpirationTime('7d')
