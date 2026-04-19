@@ -1,17 +1,17 @@
-import { SignJWT, jwtVerify, type JWTPayload } from 'jose';
+import { SignJWT, jwtVerify } from 'jose';
 import { cookies } from 'next/headers';
 
 const SECRET = new TextEncoder().encode(process.env.JWT_SECRET ?? 'fallback-dev-secret-change-in-prod');
 const COOKIE_NAME = 'topicshare_session';
 const COOKIE_MAX_AGE = 60 * 60 * 24 * 7; // 7 days
 
-export interface SessionPayload extends JWTPayload {
+export interface SessionPayload {
   userId: string;
   email: string;
 }
 
 export async function createSession(payload: SessionPayload): Promise<string> {
-  return new SignJWT(payload)
+  return new SignJWT({ userId: payload.userId, email: payload.email } as Parameters<typeof SignJWT>[0])
     .setProtectedHeader({ alg: 'HS256' })
     .setIssuedAt()
     .setExpirationTime('7d')
@@ -21,7 +21,10 @@ export async function createSession(payload: SessionPayload): Promise<string> {
 export async function verifySession(token: string): Promise<SessionPayload | null> {
   try {
     const { payload } = await jwtVerify(token, SECRET);
-    return payload as unknown as SessionPayload;
+    const userId = payload['userId'];
+    const email = payload['email'];
+    if (typeof userId !== 'string' || typeof email !== 'string') return null;
+    return { userId, email };
   } catch {
     return null;
   }
