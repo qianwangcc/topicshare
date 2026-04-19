@@ -14,14 +14,24 @@ export async function POST(req: NextRequest) {
   }
 
   const existing = await prisma.user.findUnique({ where: { email: email.toLowerCase().trim() } });
-  if (existing) {
-    return NextResponse.json({ error: 'Email already registered' }, { status: 409 });
-  }
 
+  let user;
   const hashed = await bcrypt.hash(password, 10);
-  const user = await prisma.user.create({
-    data: { email: email.toLowerCase().trim(), name: name.trim(), password: hashed },
-  });
+
+  if (existing) {
+    // Allow upgrading a magic-link-only account (no password set) to email+password
+    if (existing.password) {
+      return NextResponse.json({ error: 'Email already registered' }, { status: 409 });
+    }
+    user = await prisma.user.update({
+      where: { id: existing.id },
+      data: { name: name.trim(), password: hashed },
+    });
+  } else {
+    user = await prisma.user.create({
+      data: { email: email.toLowerCase().trim(), name: name.trim(), password: hashed },
+    });
+  }
 
   const token = await createSession({ userId: user.id, email: user.email });
   const response = NextResponse.json({ ok: true });
